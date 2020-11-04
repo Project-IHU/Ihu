@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep,time
 import cv2
 import face_recognition
 
@@ -10,23 +10,23 @@ coursecode = input('Enter the course code: ')
 print('Remotely fetching student details, make sure you have a strong network connection...')
 img = cv2.imread('obama.jpg',1)
 
-reg_students = [img] 
+reg_students = {"2015364030":img} 
 
 #generate the known encodings of these images and store in a list
 print("Initializing paramaters for {}...".format(coursecode))
 count = 0
 missed_face_locations = []
 student_encodings = []
-for i in reg_students:
-    face_locations = face_recognition.face_locations(i)
+for reg_no,img in reg_students.items():
+    face_locations = face_recognition.face_locations(img)
     if face_locations:
-        student_encoding = face_recognition.face_encodings(i)[0]
+        student_encoding = face_recognition.face_encodings(img)[0]
         student_encodings.append(student_encoding)
         count = count + 1
         print("Getting locations in {0} of {1}".format(count,len(reg_students)))       
     else:
         print("No location found for student Id {}".format(i))
-        missed_face_locations.append(i)
+        missed_face_locations.append(reg_no)
 
 if missed_face_locations:
     print("No locations were found for the following student ID(s): {}".format(missed_face_locations))
@@ -89,10 +89,13 @@ while True:
             cv2.rectangle(frame, (left,top),(right,bottom),(0,255,0),2)
 
             #Draw a label below the face
-            cv2.rectangle(frame,(left,bottom-35),(right,bottom),(0,255,0),cv2.FILLED)
+            cv2.rectangle(frame,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
             font = cv2.FONT_HERSHEY_COMPLEX_SMALL
             cv2.putText(frame,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
-        cv2.imshow('Window',frame)
-        print("Captured Student image, Verifying... click on esc key to continue")
-        if cv2.waitKey(0) == 27:
-            break
+        cv2.imshow('Verification',frame)
+        print("Captured student image, Verifying...Verification window would dissappear after 5s")
+        cv2.waitKey(10000)
+        cv2.destroyAllWindows()
+        cap.release
+        break
+        
