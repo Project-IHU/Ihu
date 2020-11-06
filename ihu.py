@@ -5,7 +5,7 @@ import face_recognition
 print('<===== Welcome to the Ihufied Client Side =====>')
 coursecode = input('Enter the course code: ')
 
-#fetch all registered students images for the particular course been taken using the api
+#fetch all registered students images for the particular course being taken using the api
 print('Remotely fetching student details, make sure you have a strong network connection...')
 img1 = cv2.imread('/home/pi/Desktop/Ihu/image/obama.jpg',1)
 img2 = cv2.imread('/home/pi/Desktop/Ihu/image/nonso.jpg',1)
@@ -21,13 +21,13 @@ student_regno = []
 for reg_no,img in reg_students.items():
     face_locations = face_recognition.face_locations(img)
     if face_locations:
+        count = count + 1
+        print("Getting locations in {0} of {1}".format(count,len(reg_students)))
         known_encoding = face_recognition.face_encodings(img)[0]
         known_encodings.append(known_encoding)
-        student_regno.append(reg_no)
-        count = count + 1
-        print("Getting locations in {0} of {1}".format(count,len(reg_students)))       
+        student_regno.append(reg_no)       
     else:
-        print("No location found for student Id {}".format(i))
+        print(f"No location found for student ID: {reg_no}")
         missed_face_locations.append(reg_no)
 
 if missed_face_locations:
@@ -47,7 +47,7 @@ while flag.lower() == 'y':
     #create a video capture object
     cap = cv2.VideoCapture(0)
     
-#while loop  that is continuously reading the frames in the video and getting locations of the faces in the fram.
+    #this while loop that is continuously reading the frames in the video and getting locations of the faces in the fram.
     face_locations = []
     unknown_encoding = []
     while True:
@@ -111,7 +111,7 @@ while flag.lower() == 'y':
                 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
                 cv2.putText(frame,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
             cv2.imshow('Verification',frame)
-            print("Captured student image, Verifying...Verification window would dissappear after 5s")
+            print("Captured student image, Verifying...Verification window would dissappear after 10s")
             cv2.waitKey(10000)
             cv2.destroyAllWindows()
             cap.release
@@ -122,7 +122,7 @@ while flag.lower() == 'y':
         reg_no = student_regno[match_index]
 
         #use the reg no to further process students info and display with necessary voice notification
-        print(f'Student ID: {reg_no} has been confirmed! ')
+        print(f'Student ID: {reg_no} has been validated! ')
     else:
         print(f"No match found")
 
