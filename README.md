@@ -17,6 +17,4 @@ Here are some useful url's to help guide you in installing some of the software 
 2. [Installing OpenCV on the Raspberry Pi](https://pimylifeup.com/raspberry-pi-opencv/)
 3. [Installing dlib and face_recognition library on Raspberry Pi](https://gist.github.com/ageitgey/1ac8dbe8572f3f533df6269dab35df65#steps)
 
-Once you have all the necessary requirements setup, run the program on any python editor and see it work like a spark.
-'PS: ensure a webcam is connected'
-Cheers!
+Once you have all the necessary requirements setup, run the program on any python editor and see it work like a spark. 'PS: ensure a webcam is connected.' Cheers!
