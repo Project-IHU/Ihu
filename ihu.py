@@ -1,16 +1,67 @@
 import cv2
 import face_recognition
+from requests import get
+import base64
+
+'''
+for the ihu.py to work, you will have to have the ihufied app running in background or online. if online, change
+the url variable on line 17 to the online url.
+'''
+
 
 #collect input to set the mode for the exam(course been taken)
 print('<===== Welcome to the Ihufied Client Side =====>')
 coursecode = input('Enter the course code: ')
 
+#this is the url where the details are being fetched from
+url = 'http://127.0.0.1/5000'
+
+#in the app/main/views.py the route to obtain students info is getuser
+url_course_code = url+'/getuser/{}'.format(coursecode)
+
+
+
+def decode_images(students):
+    '''
+    this function is used to change the students images to raw format and store in a folder created
+    '''
+    for student in students:
+        '''
+            the next three lines converts/encodes the string formatted image back to base64 (refer to project ihufied/app/main/views.py line 35 for more understanding ), which is then decoded
+            to raw image format and stored in the folder "registered_student_img" using the reg number of the 
+            student.
+        '''
+        image_encode = student['img'].encode('utf-8')
+        image_decode = base64.decodebytes(image_encode)
+        image_result = open('registered_student_img/'+student['reg_no'], 'wb')
+        image_result.write(image_decode)
+
+        #this performs the openCV function on the image and stores it in the key 'img' of the students dictionary
+        cv_img = cv2.imread(image_decode,1)
+
+        #NB. if line 40 returns error because of the 'image_decode' change 'image_decode' to 'registered_student_img/{}'.format(student['reg_no'])
+
+        #change the image value to the reg number of the student because that is what is used to save it in  the folder
+        students['img'] = cv_img
+
+
 #fetch all registered students images for the particular course being taken using the api
 print('Remotely fetching student details, make sure you have a strong network connection...')
-img1 = cv2.imread('/home/pi/Desktop/Ihu/image/obama.jpg',1)
-img2 = cv2.imread('/home/pi/Desktop/Ihu/image/nonso.jpg',1)
 
-reg_students = {"2015364030":img1,"2015364080":img2} 
+'''
+execute the fetch function and store them
+The result is already a dictionary which contains the students firstname, lastname, reg_no, and img.
+The img is encoded in base64 which will be decoded in line 64
+
+'''
+reg_students = get(url_course_code).json()
+
+#img1 = cv2.imread('/home/pi/Desktop/Ihu/image/obama.jpg',1)
+#img2 = cv2.imread('/home/pi/Desktop/Ihu/image/nonso.jpg',1)
+
+decode_images(reg_students)
+
+#reg_students = {"2015364030":img1,"2015364080":img2} 
 
 #generate the known encodings of these images and store in a list
 print(f"Initializing paramaters for {coursecode}...")
