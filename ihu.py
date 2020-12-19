@@ -33,7 +33,7 @@ def decode_images(students):
         '''
         image_encode = student['img'].encode('utf-8')
         image_decode = base64.decodebytes(image_encode)
-        image_result = open('registered_student_img/'+student['reg_no'], 'wb')
+        image_result = open('registered_student_img/{}.png'.format(student['reg_no']), 'wb')
         image_result.write(image_decode)
 
         #this performs the openCV function on the image and stores it in the key 'img' of the students dictionary
