@@ -3,7 +3,8 @@ import face_recognition
 
 #collect input to set the mode for the exam(course been taken)
 print('<===== Welcome to the Ihufied Client Side =====>')
-coursecode = input('Enter the course code: ')
+#fetch all registered coursecode through the api and allow the user to choose from the fetched result
+coursecode = input('Enter the course code: ') 
 
 #fetch all registered students images for the particular course being taken using the api
 print('Remotely fetching student details, make sure you have a strong network connection...')
@@ -36,11 +37,12 @@ print("Done.")
     
 #sense distance of the student to the device to ensure student is within range and display necessary messages
 
-
+#After writing the code for the distance sensing the default value for the flag variable would be set to 'n',
+#it would become 'y' only if the student is an acceptable distance range
 
 
 #initialize flag variable to y
-flag = 'y'
+flag = 'y' 
 
 while flag.lower() == 'y':
     
@@ -127,5 +129,5 @@ while flag.lower() == 'y':
         print(f"No match found")
 
     print("<===== Press 'Y' to continue, 'N' to quit =====>")
-    flag = input('Do you want to continue(Y/N): ')
+    flag = input('Do you want to continue(Y/N): ') #In the GUI implementation this would a button of some sort
         
