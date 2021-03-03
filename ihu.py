@@ -11,7 +11,8 @@ the url variable on line 17 to the online url.
 
 #collect input to set the mode for the exam(course been taken)
 print('<===== Welcome to the Ihufied Client Side =====>')
-coursecode = input('Enter the course code: ')
+#fetch all registered coursecode through the api and allow the user to choose from the fetched result
+coursecode = input('Enter the course code: ') 
 
 #this is the url where the details are being fetched from
 url = 'http://10.0.2.2:5000/'
@@ -93,8 +94,11 @@ print("Done.")
 #sense distance of the student to the device to ensure student is within range and display necessary messages
 
 
+#After writing the code for the distance sensing the default value for the flag variable would be set to 'n',
+#it would become 'y' only if the student is an acceptable distance range
+
 #initialize flag variable to y
-flag = 'y'
+flag = 'y' 
 
 while flag.lower() == 'y':
     
@@ -181,5 +185,5 @@ while flag.lower() == 'y':
         print(f"No match found")
 
     print("<===== Press 'Y' to continue, 'N' to quit =====>")
-    flag = input('Do you want to continue(Y/N): ')
+    flag = input('Do you want to continue(Y/N): ') #In the GUI implementation this would a button of some sort
         
