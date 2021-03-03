@@ -13,19 +13,37 @@ the url variable on line 17 to the online url.
 print('<===== Welcome to the Ihufied Client Side =====>')
 coursecode = input('Enter the course code: ')
 
+<<<<<<< HEAD
 '''
+=======
+
+>>>>>>> 075492bef95bf6f34f506e16f1d56a376d9fa0b2
 #this is the url where the details are being fetched from
 url = 'http://10.0.2.2:5000/'
 
 #in the app/main/views.py the route to obtain students info is getuser
+<<<<<<< HEAD
 url_course_code = url+'/getuser/{}'.format(coursecode)
 '''
 
 '''
+=======
+url_course_code = url+'getuser/{}'.format(coursecode)
+
+#this dictionary holds only the regnumber associated with the image of the student
+needed_data = {}
+
+>>>>>>> 075492bef95bf6f34f506e16f1d56a376d9fa0b2
 def decode_images(students):
     put triple quotes
     this function is used to change the students images to raw format and store in a folder created
+<<<<<<< HEAD
     put triple quotes
+=======
+    '''
+    
+    print('{} students are registered for this course'.format(len(students)))
+>>>>>>> 075492bef95bf6f34f506e16f1d56a376d9fa0b2
     for student in students:
         put triple quotes
             the next three lines converts/encodes the string formatted image back to base64 (refer to project ihufied/app/main/views.py line 35 for more understanding ), which is then decoded
@@ -36,15 +54,27 @@ def decode_images(students):
         image_decode = base64.decodebytes(image_encode)
         image_result = open('registered_student_img/{}.png'.format(student['reg_no']), 'wb')
         image_result.write(image_decode)
-
+        
         #this performs the openCV function on the image and stores it in the key 'img' of the students dictionary
+<<<<<<< HEAD
         cv_img = cv2.imread('registered_student_img/{}'.format(student['reg_no']),1)
+=======
+        cv_img = cv2.imread('registered_student_img/{}.png'.format(student['reg_no']),1)
+>>>>>>> 075492bef95bf6f34f506e16f1d56a376d9fa0b2
 
         #NB. if line 40 returns error because of the 'image_decode' change 'image_decode' to 'registered_student_img/{}'.format(student['reg_no'])
 
         #change the image value to the reg number of the student because that is what is used to save it in  the folder
+<<<<<<< HEAD
         students['img'] = cv_img
 '''
+=======
+        student['img'] = cv_img
+
+        #this inserts the students regnumber and image to the needed_data dictionary
+        needed_data[student['reg_no']] = student['img']
+
+>>>>>>> 075492bef95bf6f34f506e16f1d56a376d9fa0b2
 #fetch all registered students images for the particular course being taken using the api
 print('Remotely fetching student details, make sure you have a strong network connection...')
 
@@ -59,9 +89,15 @@ The img is encoded in base64 which will be decoded in line 64
 img1 = cv2.imread('/home/pi/Desktop/Ihu/image/obama.jpg',1)
 img2 = cv2.imread('/home/pi/Desktop/Ihu/image/nonso.jpg',1)
 
+<<<<<<< HEAD
 #decode_images(reg_students)
 
 reg_students = {"2015364030":img1,"2015364080":img2} 
+=======
+decode_images(reg_students)
+print(needed_data)
+#reg_students = {"2015364030":img1,"2015364080":img2} 
+>>>>>>> 075492bef95bf6f34f506e16f1d56a376d9fa0b2
 
 #generate the known encodings of these images and store in a list
 print(f"Initializing paramaters for {coursecode}...")
@@ -69,7 +105,7 @@ count = 0
 missed_face_locations = []
 known_encodings = []
 student_regno = []
-for reg_no,img in reg_students.items():
+for reg_no,img in needed_data.items():
     face_locations = face_recognition.face_locations(img)
     if face_locations:
         count = count + 1
@@ -86,8 +122,6 @@ if missed_face_locations:
 print("Done.")
     
 #sense distance of the student to the device to ensure student is within range and display necessary messages
-
-
 
 
 #initialize flag variable to y
