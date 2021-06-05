@@ -1,5 +1,7 @@
 import cv2
 import face_recognition
+import picamera
+import numpy as np
 from requests import get
 import base64
 
@@ -14,8 +16,9 @@ print('<===== Welcome to the Ihufied Client Side =====>')
 #fetch all registered coursecode through the api and allow the user to choose from the fetched result
 coursecode = input('Enter the course code: ') 
 
+
 #this is the url where the details are being fetched from
-url = 'http://10.0.2.2:5000/'
+url = 'http://ihufied-ihu.herokuapp.com/'
 
 #in the app/main/views.py the route to obtain students info is getuser
 url_course_code = url+'getuser/{}'.format(coursecode)
@@ -27,7 +30,6 @@ def decode_images(students):
     '''
     this function is used to change the students images to raw format and store in a folder created
     '''
-    
     print('{} students are registered for this course'.format(len(students)))
     for student in students:
         '''
@@ -35,8 +37,9 @@ def decode_images(students):
             to raw image format and stored in the folder "registered_student_img" using the reg number of the 
             student.
         '''
-        image_encode = student['img'].encode('utf-8')
-        image_decode = base64.decodebytes(image_encode)
+        img_data = student['img'].encode('utf-8')
+        #image_encode = student['img'].encode('utf-8').decode('utf-8')
+        image_decode = base64.decodebytes(img_data)
         image_result = open('registered_student_img/{}.png'.format(student['reg_no']), 'wb')
         image_result.write(image_decode)
         
@@ -61,7 +64,7 @@ The img is encoded in base64 which will be decoded in line 64
 
 '''
 reg_students = get(url_course_code).json()
-
+#print(reg_students)
 #img1 = cv2.imread('/home/pi/Desktop/Ihu/image/obama.jpg',1)
 #img2 = cv2.imread('/home/pi/Desktop/Ihu/image/nonso.jpg',1)
 
@@ -70,7 +73,7 @@ print(needed_data)
 #reg_students = {"2015364030":img1,"2015364080":img2} 
 
 #generate the known encodings of these images and store in a list
-print(f"Initializing paramaters for {coursecode}...")
+print("Initializing paramaters for {}...".format(coursecode))
 count = 0
 missed_face_locations = []
 known_encodings = []
@@ -84,7 +87,7 @@ for reg_no,img in needed_data.items():
         known_encodings.append(known_encoding)
         student_regno.append(reg_no)       
     else:
-        print(f"No location found for student ID: {reg_no}")
+        print("No location found for student ID: {}".format(reg_no))
         missed_face_locations.append(reg_no)
 
 if missed_face_locations:
@@ -92,6 +95,7 @@ if missed_face_locations:
 print("Done.")
     
 #sense distance of the student to the device to ensure student is within range and display necessary messages
+
 
 
 #After writing the code for the distance sensing the default value for the flag variable would be set to 'n',
@@ -102,20 +106,27 @@ flag = 'y'
 
 while flag.lower() == 'y':
     
-    #create a video capture object
-    cap = cv2.VideoCapture(0)
+    # Get a reference to the Raspberry Pi camera.
+    camera = picamera.PiCamera()
+    camera.resolution = (320, 240)
+    output = np.empty((240, 320, 3), dtype=np.uint8)
     
     #this while loop that is continuously reading the frames in the video and getting locations of the faces in the fram.
     face_locations = []
     unknown_encoding = []
     while True:
-        ret, frame = cap.read()
+        
+        # Grab a single frame of video from the RPi camera as a numpy array
+        camera.capture(output, format="rgb")
 
         #Resize frame for faster face_recognition computation
-        small_frame = cv2.resize(frame, (0,0), fx=0.25,fy=0.25)
+        small_frame = cv2.resize(output, (0,0), fx=0.25,fy=0.25)
 
         #covert image to RGB color space
         rgb_small_frame = small_frame[:,:,::-1]
+
+        #covert image to BGR color space
+        frame = output[:,:,::-1]
 
         face_locations = face_recognition.face_locations(rgb_small_frame)
         cv2.imshow('Ihufied', frame)
@@ -123,11 +134,14 @@ while flag.lower() == 'y':
     
         if  len(face_locations) > 1:
             cv2.destroyAllWindows()
-            cap.release()
+            camera.close()
             print("Multiple Faces detected!")
+            
+            multiple_face = output
 
             for (top,right,bottom,left) in face_locations:
-
+                
+                
                 #Scale back up face locations
                 top *= 4
                 right *= 4
@@ -135,22 +149,22 @@ while flag.lower() == 'y':
                 left *= 4
 
                 #Draw a box around the face
-                cv2.rectangle(frame, (left,top),(right,bottom),(0,0,255),2)
+                cv2.rectangle(multiple_face, (left,top),(right,bottom),(0,0,255),2)
 
                 #Draw a label below the face
-                cv2.rectangle(frame,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
+                cv2.rectangle(multiple_face,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
                 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                cv2.putText(frame,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
-            cv2.imshow('Multiple Image Error',frame)
+                cv2.putText(multiple_face,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
+            cv2.imshow('Multiple Image Error',multiple_face[:,:,::-1])
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyWindow('Multiple Image Error')
-                cap.release()
+                camera.close()
                 break
 
         elif len(face_locations) == 1:
             print("A student is in position")
             cv2.destroyAllWindows()
-            cap.release()
+            camera.close()
             unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations)
             match = face_recognition.compare_faces(known_encodings,unknown_encoding[0])
             for (top,right,bottom,left) in face_locations:
@@ -162,17 +176,17 @@ while flag.lower() == 'y':
                 left *= 4
 
                 #Draw a box around the face
-                cv2.rectangle(frame, (left,top),(right,bottom),(0,255,0),2)
+                cv2.rectangle(output, (left,top),(right,bottom),(0,255,0),2)
 
                 #Draw a label below the face
-                cv2.rectangle(frame,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
+                cv2.rectangle(output,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
                 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                cv2.putText(frame,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
-            cv2.imshow('Verification',frame)
+                cv2.putText(output,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
+            cv2.imshow('Verification',output[:,:,::-1])
             print("Captured student image, Verifying...Verification window would dissappear after 10s")
             cv2.waitKey(10000)
             cv2.destroyAllWindows()
-            cap.release
+            camera.close
             break
     if True in match:
         print('A match has been found analyzing...')
@@ -180,9 +194,9 @@ while flag.lower() == 'y':
         reg_no = student_regno[match_index]
 
         #use the reg no to further process students info and display with necessary voice notification
-        print(f'Student ID: {reg_no} has been validated! ')
+        print('Student ID: {} has been validated! '.format(reg_no))
     else:
-        print(f"No match found")
+        print("No match found")
 
     print("<===== Press 'Y' to continue, 'N' to quit =====>")
     flag = input('Do you want to continue(Y/N): ') #In the GUI implementation this would a button of some sort
