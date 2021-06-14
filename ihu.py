@@ -176,7 +176,7 @@ def decode_images(students):
                  Getting_message.grid(row=2,column=1,padx=(320,0))
                  root.update_idletasks()
                  time.sleep
-                 known_encoding = face_recognition.face_encodings(img)[0]
+                 known_encoding = face_recognition.face_encodings(img, num_jitters=100, model="large")[0]
                  known_encodings.append(known_encoding)
                  student_regno.append(reg_no)       
              else:
@@ -320,18 +320,18 @@ def start_verification(known_encodings,student_regno,student):
                       cv2.rectangle(multiple_face,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
                       font = cv2.FONT_HERSHEY_COMPLEX_SMALL
                       cv2.putText(multiple_face,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
-                      cv2.imshow('Multiple Image Error',frame)
-                      if cv2.waitKey(1) == ord('q'):
-                          cv2.destroyWindow('Multiple Image Error')
-                          camera.close
-                          break
+                  cv2.imshow('Multiple Image Error',frame)
+                  cv2.waitKey(1000)
+                  cv2.destroyWindow('Multiple Image Error')
+                  camera.close
+                  break
      
               elif len(face_locations) == 1:
                   print("A student is in position")
                   cv2.destroyAllWindows()
                   camera.close()
-                  unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations)
-                  match = face_recognition.compare_faces(known_encodings,unknown_encoding[0])
+                  unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations, model="large")
+                  match = face_recognition.compare_faces(known_encodings,unknown_encoding[0], tolerance=0.45)
                   for (top,right,bottom,left) in face_locations:
      
                       #Scale up face locations
@@ -347,7 +347,7 @@ def start_verification(known_encodings,student_regno,student):
                       cv2.putText(output,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
                       cv2.imshow('Verification',frame)
                       print("Captured student image, Verifying...Verification window would dissappear after 10s")
-                      cv2.waitKey(100)
+                      cv2.waitKey(500)
                       cv2.destroyAllWindows()
                       camera.close()
                       break
