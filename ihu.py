@@ -9,6 +9,7 @@ from PIL import Image,ImageTk
 import tkinter.font as tkFont
 from tkinter import ttk
 import time
+import random
 
 '''
 for the ihu.py to work, you will have to have the ihufied app running in background or online. if online, change
@@ -127,6 +128,7 @@ def back():
 #img=ImageTk.PhotoImage(Image.open("registered_student"))
 needed_data = {}
 all_details = {}
+seat_number = []
 #img=ImageTk.PhotoImage(Image.open('registered_student_img/2015364011.png'))
 #imgl=Label(WelcomeFrame,image=img)
 
@@ -184,6 +186,7 @@ def decode_images(students):
 #                  noloc_message= Label(WelcomeFrame, text=no_loc, font=logostyle)
 #                  noloc_message.grid(row=3,column=1)
                  missed_face_locations.append(reg_no)
+             seat_number =  random.sample(range(1,count), count-1)
        
         if missed_face_locations:
 #              def view_list():
@@ -243,10 +246,16 @@ def display_match(student,known_encodings, student_regno,students):
     global New
     message="Student with registration number {} has been verified!".format(student['reg_no'])
     destroyed(message)
+    if seat_number:
+     seat=seat_number.pop
+     seat_tag=Label(WelcomeFrame,text= "Seat Number:",font=papystyle,bg=ihugrey,fg=ihublue)
+     seat_tag.grid(row=0,column=4)
+     seat_no=Label(WelcomeFrame, text=seat,font=papystyle,bg=ihugrey,fg=ihublue)
+     seat_no.grid(row=0,column=5)
     New =ImageTk.PhotoImage(Image.open("registered_student_img/{}.png".format(student['reg_no'])))
     pic=Label(WelcomeFrame,image=New)
     pic.grid(row=0,column=0)
-    back_button=Button(WelcomeFrame, text="Next",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command=lambda: start_verification(known_encodings,student_regno,students)).grid(row=0,column=4)
+    back_button=Button(WelcomeFrame, text="Next",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command=lambda: start_verification(known_encodings,student_regno,students)).grid(row=1,column=4)
     f_tag=Label(WelcomeFrame,text="First Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
     f_tag.grid(row=2,column=0,padx=(0,200))
     fname=student['firstname']
