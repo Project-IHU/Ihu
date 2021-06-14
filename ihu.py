@@ -239,14 +239,14 @@ def fetch_details(coursecode):
             get_ready.grid(row=1,column=1,pady=(0,5),padx=(100,0))
         elif reg_students and progress_bar['value'] ==100:
             decode_images(reg_students)
-def display_match(student):
+def display_match(student,known_encodings, student_regno,students):
     global New
     message="Student with registration number {} has been verified!".format(student['reg_no'])
     destroyed(message)
     New =ImageTk.PhotoImage(Image.open("registered_student_img/{}.png".format(student['reg_no'])))
     pic=Label(WelcomeFrame,image=New)
     pic.grid(row=0,column=0)
-    back_button=Button(WelcomeFrame, text="Next",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= start_verification).grid(row=0,column=4)
+    back_button=Button(WelcomeFrame, text="Next",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command=lambda: start_verification(known_encodings,student_regno,students)).grid(row=0,column=4)
     f_tag=Label(WelcomeFrame,text="First Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
     f_tag.grid(row=2,column=0,padx=(0,200))
     fname=student['firstname']
@@ -360,7 +360,7 @@ def start_verification(known_encodings,student_regno,student):
                       #use the reg no to further process students info and display with necessary voice notification
                       
                       #DISPLAY STUDENT THAT HAS BEEN FOUND
-                      display_match(student[str(reg_no)])  
+                      display_match(student[str(reg_no)],known_encodings,student_regno,student)  
                   else:
                       message="no match found"
                       destroyed(message)
