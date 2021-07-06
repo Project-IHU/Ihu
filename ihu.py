@@ -1,6 +1,6 @@
 import cv2
 import face_recognition
-#import picamera
+import picamera
 import numpy as np
 from requests import get
 import base64
@@ -9,6 +9,7 @@ from PIL import Image,ImageTk
 import tkinter.font as tkFont
 from tkinter import ttk
 import time
+import random
 
 '''
 for the ihu.py to work, you will have to have the ihufied app running in background or online. if online, change
@@ -71,7 +72,7 @@ def destroyer():
     logo=Label(titleBar,text="IHUFIED!", font=logostyle,bg=ihugrey, fg="white")
     logo.grid(row=0,column=1,padx=0,pady=0)
     home=Button(titleBar,text="Analyze video",font=logostyle,padx=0,pady=0,bg=buttonblue,fg="white",borderwidth=0,border=0)
-    home.grid(row=0,column=8,padx=(540,0),ipady=0)
+    home.grid(row=0,column=8,padx=(765,0),ipady=0)
     
     
 def destroyed(message):
@@ -81,6 +82,10 @@ def destroyed(message):
         prev.destroy()
     logo=Label(titleBar,text=message, font=logostyle,bg=ihugrey, fg="white")
     logo.grid(row=0,column=0,padx=0,pady=0)
+    back_button=Button(titleBar,
+                       text="Back",font=logostyle,padx=10,
+                       pady=0,fg="white",bg=buttonblue,command= exam_setup).grid(row=0,column=1,padx=300)
+
 #     home=Button(titleBar,text="Analyze video",font=logostyle,padx=0,pady=0,bg=buttonblue,fg="white",borderwidth=0,border=0)
 #     home.grid(row=0,column=8,padx=(357,0),ipady=0)
 
@@ -90,7 +95,7 @@ def exam_setup():
 
     #collect input to set the mode for the exam(course been taken)
 
-    code_label=Label(WelcomeFrame,text="Enter Course Code: ",bg=ihugrey,fg="white").grid(row=0,column=0,padx=(40,5),pady=(195,10))
+    code_label=Label(WelcomeFrame,text="Enter Course Code: ",bg=ihugrey,fg="white").grid(row=0,column=0,padx=(250,5),pady=(195,10))
     course_code=Entry(WelcomeFrame,width=40)
     course_code.grid(row=0,column=1,pady=(200,10), padx=(40,100))
     back_button=Button(titleBar, text="Back",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= back).grid(row=0,column=0)
@@ -127,6 +132,8 @@ def back():
 #img=ImageTk.PhotoImage(Image.open("registered_student"))
 needed_data = {}
 all_details = {}
+global seat_number
+seat_number = []
 #img=ImageTk.PhotoImage(Image.open('registered_student_img/2015364011.png'))
 #imgl=Label(WelcomeFrame,image=img)
 
@@ -137,10 +144,12 @@ def decode_images(students):
     '''
     this function is used to change the students images to raw format and store in a folder created
     '''
-    back_button=Button(titleBar, text="Back",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= exam_setup).grid(row=0,column=0)
+    back_button=Button(titleBar,
+                       text="Back",font=logostyle,padx=10,
+                       pady=0,fg="white",bg=buttonblue,command= exam_setup).grid(row=0,column=0)
     ini_text='{} students are registered for this course'.format(len(students))
     ini_message=Label(WelcomeFrame,text=ini_text,font=papystyle,bg=ihugrey,fg=ihublue)
-    ini_message.grid(row=1,column=1,pady=(195,0),padx=(200,0))
+    ini_message.grid(row=1,column=1,pady=(195,0),padx=(350,0))
     for student in students:
         all_details[str(student['reg_no'])] = student
         '''
@@ -157,7 +166,7 @@ def decode_images(students):
         cv_img = cv2.imread('registered_student_img/{}.png'.format(student['reg_no']),1)
 
         #NB. if line 40 returns error because of the 'image_decode' change 'image_decode' to 'registered_student_img/{}'.format(student['reg_no'])
-
+        back_button=Button(titleBar, text="Back",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= back).grid(row=0,column=0)
         #change the image value to the reg number of the student because that is what is used to save it in  the folder
         student['img'] = cv_img
 
@@ -173,10 +182,10 @@ def decode_images(students):
                  count = count + 1
                  loc_message="Generating face prints in {0} of {1}".format(count,len(students))
                  Getting_message= Label(WelcomeFrame, text=loc_message, font=papystyle,bg=ihugrey,fg=ihublue)
-                 Getting_message.grid(row=2,column=1,padx=(170,0))
+                 Getting_message.grid(row=2,column=1,padx=(320,0))
                  root.update_idletasks()
                  time.sleep
-                 known_encoding = face_recognition.face_encodings(img)[0]
+                 known_encoding = face_recognition.face_encodings(img,model="large")[0]
                  known_encodings.append(known_encoding)
                  student_regno.append(reg_no)       
              else:
@@ -184,7 +193,9 @@ def decode_images(students):
 #                  noloc_message= Label(WelcomeFrame, text=no_loc, font=logostyle)
 #                  noloc_message.grid(row=3,column=1)
                  missed_face_locations.append(reg_no)
-       
+        seat_number =  random.sample(range(1,count+1), count)
+        print(seat_number)
+        print("This is count: {}".format(count))
         if missed_face_locations:
 #              def view_list():
 #                  face_frame=LabelFrame(WelcomeFrame,text="missed",width=200,height=200)
@@ -193,24 +204,27 @@ def decode_images(students):
 #                      no_face=Label(Welcome)
              missed_loc= "No faceprint generated for the following student ID(s):".format(missed_face_locations)
              missed_loc_message= Label(WelcomeFrame, text=missed_loc, font=papystyle,bg=ihugrey,fg=ihublue)
-             missed_loc_message.grid(row=3,column=1,padx=(40,5))
+             missed_loc_message.grid(row=3,column=1,padx=(250,5))
              for stu in missed_face_locations:
                  missed=Label(WelcomeFrame,text=stu,font=papystyle, bg=ihugrey,fg=ihublue)
                  missed.grid(row=3,column=2)
                  
-        
-        Verify=Button(WelcomeFrame,text='Start verification',font=papystyle,bg=buttonblue,border=0,borderwidth=0, command=lambda:start_verification(known_encodings,student_regno,all_details))
-        Verify.grid(row=4,column=1,padx=(200,10), pady=(10,75))
+        if len(known_encodings) + len(missed_face_locations) == len(students):
+            done=Label(WelcomeFrame,text="System is ready for verification",font=papystyle, bg=ihugrey,fg=ihublue)
+            done.grid(row=2,column=1,padx=(320,0))
+            Verify=Button(WelcomeFrame,text='Start verification',font=papystyle,bg=buttonblue,border=0,borderwidth=0, command=lambda:start_verification(known_encodings,student_regno,all_details,seat_number))
+            Verify.grid(row=4,column=1,padx=(330,10), pady=(10,75))
         
         #FETCH DETAILS IS USED TO DO THE API CALL
 def fetch_details(coursecode):
     destroyer()
-     
+    back_button=Button(titleBar, text="Back",font=logostyle,padx=10,
+                       pady=0,fg="white",bg=buttonblue,command= back).grid(row=0,column=0)
     message= "Remotely fetching student details,ensure network connection is strong..."
     loading=Label(WelcomeFrame,text=message, font=papystyle,bg=ihugrey,fg=ihublue)
-    loading.grid(row=0,column=1,pady=(195,10),padx=(160,5))
+    loading.grid(row=0,column=1,pady=(195,10),padx=(250,5))
     progress_bar=ttk.Progressbar(WelcomeFrame,orient=HORIZONTAL,length=300,mode='determinate')
-    progress_bar.grid(row=2,column=1,pady=(0,100),padx=(40,5))
+    progress_bar.grid(row=2,column=1,pady=(0,100),padx=(250,5))
 #     
     
     #this is the url where the details are being fetched from
@@ -236,37 +250,61 @@ def fetch_details(coursecode):
         time.sleep(1)
         if reg_students and progress_bar['value'] == 60 :
             get_ready=Label(WelcomeFrame,text="Initializing parameter....", font=papystyle,bg=ihugrey,fg=ihublue)
-            get_ready.grid(row=1,column=1,pady=(0,5))
+            get_ready.grid(row=1,column=1,pady=(0,5),padx=(100,0))
         elif reg_students and progress_bar['value'] ==100:
             decode_images(reg_students)
-def display_match(student):
+def display_match(student,known_encodings, student_regno,students,seat_number):
     global New
-    message="Student with registration number {} has been verified!".format(student['reg_no'])
-    destroyed(message)
-    New =ImageTk.PhotoImage(Image.open("registered_student_img/{}.png".format(student['reg_no'])))
-    pic=Label(WelcomeFrame,image=New)
-    pic.grid(row=0,column=0)
-    back_button=Button(WelcomeFrame, text="Next",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= start_verification).grid(row=0,column=4)
-    f_tag=Label(WelcomeFrame,text="First Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
-    f_tag.grid(row=2,column=0,padx=(0,200))
-    fname=student['firstname']
-    firstname=Label(WelcomeFrame,text=fname,font=papystyle,bg=ihugrey,fg=ihublue)
-    firstname.grid(row=2,column=1,padx=0)
     
-    l_tag=Label(WelcomeFrame,text="Last Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
-    l_tag.grid(row=3,column=0,padx=(0,200))
-    lname=student['lastname']
-    lastname=Label(WelcomeFrame,text=lname,font=papystyle,bg=ihugrey,fg=ihublue)
-    lastname.grid(row=3,column=1,padx=0)
+    if student == 0:
+        message = "No Match Found"
+        destroyed(message)
+        back_button=Button(WelcomeFrame, text="Next",
+                       font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,
+                       command=lambda: start_verification(known_encodings,
+                                                          student_regno,students,seat_number))
+        back_button.grid(row=1, column=4)
+    else:
+        
+        message="Student with registration number {} has been verified!".format(student['reg_no'])
+        destroyed(message)
+        back_button=Button(WelcomeFrame, text="Next",
+                       font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,
+                       command=lambda: start_verification(known_encodings,
+                                                          student_regno,students,seat_number))
+        
+        
+        back_button.grid(row=1, column=4)
+        print(seat_number)
+        if seat_number:
+         seat=seat_number.pop()
+         seat_tag=Label(WelcomeFrame,text= "Seat Number:",font=papystyle,bg=ihugrey,fg=ihublue)
+         seat_tag.grid(row=0,column=4)
+         seat_no=Label(WelcomeFrame, text=seat,font=papystyle,bg=ihugrey,fg=ihublue)
+         seat_no.grid(row=0,column=5)
+        New =ImageTk.PhotoImage(Image.open("registered_student_img/{}.png".format(student['reg_no'])))
+        pic=Label(WelcomeFrame,image=New)
+        pic.grid(row=0,column=0)
+        f_tag=Label(WelcomeFrame,text="First Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
+        f_tag.grid(row=2,column=0,padx=(0,200))
+        fname=student['firstname']
+        firstname=Label(WelcomeFrame,text=fname,font=papystyle,bg=ihugrey,fg=ihublue)
+        firstname.grid(row=2,column=1,padx=0)
+        
+        l_tag=Label(WelcomeFrame,text="Last Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
+        l_tag.grid(row=3,column=0,padx=(0,200))
+        lname=student['lastname']
+        lastname=Label(WelcomeFrame,text=lname,font=papystyle,bg=ihugrey,fg=ihublue)
+        lastname.grid(row=3,column=1,padx=0)
+        
+        reg_tag=Label(WelcomeFrame,text="Registration No: ",font=papystyle,bg=ihugrey,fg=ihublue)
+        reg_tag.grid(row=1,column=0,padx=(0,180))
+        rnum=student['reg_no']
+        regi_no=Label(WelcomeFrame,text=rnum,font=papystyle,bg=ihugrey,fg=ihublue)
+        regi_no.grid(row=1,column=1,padx=0)
     
-    reg_tag=Label(WelcomeFrame,text="Registration No: ",font=papystyle,bg=ihugrey,fg=ihublue)
-    reg_tag.grid(row=1,column=0,padx=(0,180))
-    rnum=student['reg_no']
-    regi_no=Label(WelcomeFrame,text=rnum,font=papystyle,bg=ihugrey,fg=ihublue)
-    regi_no.grid(row=1,column=1,padx=0)
     
-    
-def start_verification(known_encodings,student_regno,student):
+def start_verification(known_encodings,student_regno,student,seat_number):
      
   #initialize flag variable to y
      flag = 'y' 
@@ -289,10 +327,10 @@ def start_verification(known_encodings,student_regno,student):
                 #Resize frame for faster face_recognition computation
               small_frame = cv2.resize(output, (0,0), fx=0.25,fy=0.25)
 
-                #covert image to RGB color space
+              #covert image to RGB color space
               rgb_small_frame = small_frame[:,:,::-1]
 
-                #covert image to BGR color space
+              #covert image to BGR color space
               frame = output[:,:,::-1]
 
      
@@ -302,9 +340,9 @@ def start_verification(known_encodings,student_regno,student):
           
               if  len(face_locations) > 1:
                   cv2.destroyAllWindows()
-                  cap.release()
+                  camera.close()
                   #print("Multiple Faces detected!")
-     
+                  multiple_face=output    
                   for (top,right,bottom,left) in face_locations:
      
                       #Scale back up face locations
@@ -314,24 +352,24 @@ def start_verification(known_encodings,student_regno,student):
                       left *= 4
      
                       #Draw a box around the face
-                      cv2.rectangle(frame, (left,top),(right,bottom),(0,0,255),2)
+                      cv2.rectangle(multiple_face, (left,top),(right,bottom),(0,0,255),2)
      
                   #Draw a label below the face
-                      cv2.rectangle(frame,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
+                      cv2.rectangle(multiple_face,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
                       font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                      cv2.putText(frame,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
-                      cv2.imshow('Multiple Image Error',frame)
-                      if cv2.waitKey(1) == ord('q'):
-                          cv2.destroyWindow('Multiple Image Error')
-                          cap.release()
-                          break
+                      cv2.putText(multiple_face,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
+                  cv2.imshow('Multiple Image Error',frame)
+                  cv2.waitKey(1000)
+                  cv2.destroyWindow('Multiple Image Error')
+                  camera.close
+                  break
      
               elif len(face_locations) == 1:
                   print("A student is in position")
                   cv2.destroyAllWindows()
-                  cap.release()
-                  unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations)
-                  match = face_recognition.compare_faces(known_encodings,unknown_encoding[0])
+                  camera.close()
+                  unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations, model="large")
+                  match = face_recognition.compare_faces(known_encodings,unknown_encoding[0], tolerance=0.45)
                   for (top,right,bottom,left) in face_locations:
      
                       #Scale up face locations
@@ -342,14 +380,14 @@ def start_verification(known_encodings,student_regno,student):
      
      
                       #Draw a label below the face
-                      cv2.rectangle(frame,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
+                      cv2.rectangle(output,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
                       font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                      cv2.putText(frame,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
+                      cv2.putText(output,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
                       cv2.imshow('Verification',frame)
                       print("Captured student image, Verifying...Verification window would dissappear after 10s")
-                      cv2.waitKey(100)
+                      cv2.waitKey(500)
                       cv2.destroyAllWindows()
-                      cap.release
+                      camera.close()
                       break
                   if True in match:
                       print('A match has been found analyzing...')
@@ -360,10 +398,10 @@ def start_verification(known_encodings,student_regno,student):
                       #use the reg no to further process students info and display with necessary voice notification
                       
                       #DISPLAY STUDENT THAT HAS BEEN FOUND
-                      display_match(student[str(reg_no)])  
+                      display_match(student[str(reg_no)],known_encodings,student_regno,student, seat_number)  
                   else:
-                      message="no match found"
-                      destroyed(message)
+                      display_match(0,known_encodings,student_regno,student,seat_number)  
+
 
     
 #WELCOME PAGE/FRAME
@@ -375,284 +413,4 @@ video=Button(WelcomeFrame,text="ANALYSE VIDEO",font=logostyle,bg="#ffffff",borde
 
 
 
-root.mainloop()
-#collect input to set the mode for the exam(course been taken)
-print('<===== Welcome to the Ihufied Client Side =====>')
-#fetch all registered coursecode through the api and allow the user to choose from the fetched result
-coursecode = input('Enter the course code: ') 
-
-
-#this is the url where the details are being fetched from
-url = 'http://ihufied-ihu.herokuapp.com/'
-
-#in the app/main/views.py the route to obtain students info is getuser
-url_course_code = url+'getuser/{}'.format(coursecode)
-
-#this dictionary holds only the regnumber associated with the image of the student
-needed_data = {}
-
-def decode_images(students):
-    '''
-    this function is used to change the students images to raw format and store in a folder created
-    '''
-    print('{} students are registered for this course'.format(len(students)))
-    for student in students:
-        '''
-            the next three lines converts/encodes the string formatted image back to base64 (refer to project ihufied/app/main/views.py line 35 for more understanding ), which is then decoded
-            to raw image format and stored in the folder "registered_student_img" using the reg number of the 
-            student.
-        '''
-        img_data = student['img'].encode('utf-8')
-        #image_encode = student['img'].encode('utf-8').decode('utf-8')
-        image_decode = base64.decodebytes(img_data)
-        image_result = open('registered_student_img/{}.png'.format(student['reg_no']), 'wb')
-        image_result.write(image_decode)
-        
-        #this performs the openCV function on the image and stores it in the key 'img' of the students dictionary
-        cv_img = cv2.imread('registered_student_img/{}.png'.format(student['reg_no']),1)
-
-        #NB. if line 40 returns error because of the 'image_decode' change 'image_decode' to 'registered_student_img/{}'.format(student['reg_no'])
-
-        #change the image value to the reg number of the student because that is what is used to save it in  the folder
-        student['img'] = cv_img
-
-        #this inserts the students regnumber and image to the needed_data dictionary
-        needed_data[student['reg_no']] = student['img']
-
-#fetch all registered students images for the particular course being taken using the api
-print('Remotely fetching student details, make sure you have a strong network connection...')
-
-'''
-execute the fetch function and store them
-The result is already a dictionary which contains the students firstname, lastname, reg_no, and img.
-The img is encoded in base64 which will be decoded in line 64
-
-'''
-reg_students = get(url_course_code).json()
-#print(reg_students)
-#img1 = cv2.imread('/home/pi/Desktop/Ihu/image/obama.jpg',1)
-#img2 = cv2.imread('/home/pi/Desktop/Ihu/image/nonso.jpg',1)
-
-decode_images(reg_students)
-print(needed_data)
-#reg_students = {"2015364030":img1,"2015364080":img2} 
-
-#generate the known encodings of these images and store in a list
-print("Initializing paramaters for {}...".format(coursecode))
-count = 0
-missed_face_locations = []
-known_encodings = []
-student_regno = []
-for reg_no,img in needed_data.items():
-    face_locations = face_recognition.face_locations(img)
-    if face_locations:
-        count = count + 1
-        print("Getting locations in {0} of {1}".format(count,len(reg_students)))
-        known_encoding = face_recognition.face_encodings(img)[0]
-        known_encodings.append(known_encoding)
-        student_regno.append(reg_no)       
-    else:
-        print("No location found for student ID: {}".format(reg_no))
-        missed_face_locations.append(reg_no)
-
-if missed_face_locations:
-    print("No locations were found for the following student ID(s): {}".format(missed_face_locations))
-print("Done.")
-    
-#sense distance of the student to the device to ensure student is within range and display necessary messages
-
-
-
-#After writing the code for the distance sensing the default value for the flag variable would be set to 'n',
-#it would become 'y' only if the student is an acceptable distance range
-
-#initialize flag variable to y
-flag = 'y' 
-
-while flag.lower() == 'y':
-    
-    # Get a reference to the Raspberry Pi camera.
-    camera = picamera.PiCamera()
-    camera.resolution = (320, 240)
-    output = np.empty((240, 320, 3), dtype=np.uint8)
-    
-    #this while loop that is continuously reading the frames in the video and getting locations of the faces in the fram.
-    face_locations = []
-    unknown_encoding = []
-    while True:
-        
-        # Grab a single frame of video from the RPi camera as a numpy array
-        camera.capture(output, format="rgb")
-
-        #Resize frame for faster face_recognition computation
-        small_frame = cv2.resize(output, (0,0), fx=0.25,fy=0.25)
-
-        #covert image to RGB color space
-        rgb_small_frame = small_frame[:,:,::-1]
-
-        #covert image to BGR color space
-        frame = output[:,:,::-1]
-
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        cv2.imshow('Ihufied', frame)
-        cv2.waitKey(1)
-    
-        if  len(face_locations) > 1:
-            cv2.destroyAllWindows()
-            camera.close()
-            print("Multiple Faces detected!")
-            
-            multiple_face = output
-
-            for (top,right,bottom,left) in face_locations:
-                
-                
-                #Scale back up face locations
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
-
-                #Draw a box around the face
-                cv2.rectangle(multiple_face, (left,top),(right,bottom),(0,0,255),2)
-
-                #Draw a label below the face
-                cv2.rectangle(multiple_face,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
-                font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                cv2.putText(multiple_face,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
-            cv2.imshow('Multiple Image Error',multiple_face[:,:,::-1])
-            if cv2.waitKey(1) == ord('q'):
-                cv2.destroyWindow('Multiple Image Error')
-                camera.close()
-                break
-
-        elif len(face_locations) == 1:
-            print("A student is in position")
-            cv2.destroyAllWindows()
-            camera.close()
-            unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations)
-            match = face_recognition.compare_faces(known_encodings,unknown_encoding[0])
-            for (top,right,bottom,left) in face_locations:
-
-                #Scale up face locations
-                top *= 4
-                right *= 4
-                bottom *= 4
-                left *= 4
-
-                #Draw a box around the face
-                cv2.rectangle(output, (left,top),(right,bottom),(0,255,0),2)
-
-                #Draw a label below the face
-                cv2.rectangle(output,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
-                font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                cv2.putText(output,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
-            cv2.imshow('Verification',output[:,:,::-1])
-            print("Captured student image, Verifying...Verification window would dissappear after 10s")
-            cv2.waitKey(10000)
-            cv2.destroyAllWindows()
-            camera.close
-            break
-    if True in match:
-        print('A match has been found analyzing...')
-        match_index = match.index(True)
-        reg_no = student_regno[match_index]
-
-        #use the reg no to further process students info and display with necessary voice notification
-        print('Student ID: {} has been validated! '.format(reg_no))
-    else:
-        print("No match found")
-
-    print("<===== Press 'Y' to continue, 'N' to quit =====>")
-    flag = input('Do you want to continue(Y/N): ') #In the GUI implementation this would a button of some sort
-def start_verification(known_encodings,student_regno,student):
-     
-  #initialize flag variable to y
-     flag = 'y' 
-     
-     while flag.lower() == 'y':
-      
-          #create a video capture object
-          cap = cv2.VideoCapture(0)
-          
-          #this while loop that is continuously reading the frames in the video and getting locations of the faces in the fram.
-          face_locations = []
-          unknown_encoding = []
-          while True:
-              ret, frame = cap.read()
-     
-              #Resize frame for faster face_recognition computation
-              small_frame = cv2.resize(frame, (0,0), fx=0.25,fy=0.25)
-     
-              #covert image to RGB color space
-              rgb_small_frame = small_frame[:,:,::-1]
-     
-              face_locations = face_recognition.face_locations(rgb_small_frame)
-              cv2.imshow('Ihufied', frame)
-              cv2.waitKey(1)
-          
-              if  len(face_locations) > 1:
-                  cv2.destroyAllWindows()
-                  cap.release()
-                  #print("Multiple Faces detected!")
-     
-                  for (top,right,bottom,left) in face_locations:
-     
-                      #Scale back up face locations
-                      top *= 4
-                      right *= 4
-                      bottom *= 4
-                      left *= 4
-     
-                      #Draw a box around the face
-                      cv2.rectangle(frame, (left,top),(right,bottom),(0,0,255),2)
-     
-                  #Draw a label below the face
-                      cv2.rectangle(frame,(left,bottom-35),(right,bottom),(0,0,255),cv2.FILLED)
-                      font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                      cv2.putText(frame,"Multiple face detection",(left+6,bottom-6),font,0.5,(255,255,255),1)
-                      cv2.imshow('Multiple Image Error',frame)
-                      if cv2.waitKey(1) == ord('q'):
-                          cv2.destroyWindow('Multiple Image Error')
-                          cap.release()
-                          break
-     
-              elif len(face_locations) == 1:
-                  print("A student is in position")
-                  cv2.destroyAllWindows()
-                  cap.release()
-                  unknown_encoding = face_recognition.face_encodings(rgb_small_frame, face_locations)
-                  match = face_recognition.compare_faces(known_encodings,unknown_encoding[0])
-                  for (top,right,bottom,left) in face_locations:
-     
-                      #Scale up face locations
-                      top *= 4
-                      right *= 4
-                      bottom *= 4
-                      left *= 4
-     
-     
-                      #Draw a label below the face
-                      cv2.rectangle(frame,(left,bottom-30),(right,bottom),(0,255,0),cv2.FILLED)
-                      font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-                      cv2.putText(frame,"Verifying",(left+6,bottom-6),font,0.5,(255,255,255),1)
-                      cv2.imshow('Verification',frame)
-                      print("Captured student image, Verifying...Verification window would dissappear after 10s")
-                      cv2.waitKey(100)
-                      cv2.destroyAllWindows()
-                      cap.release
-                      break
-                  if True in match:
-                      print('A match has been found analyzing...')
-                      match_index = match.index(True)
-                      reg_no = student_regno[match_index]
-                      
-                      
-                      #use the reg no to further process students info and display with necessary voice notification
-                      
-                      #DISPLAY STUDENT THAT HAS BEEN FOUND
-                      display_match(student[str(reg_no)])  
-                  else:
-                      message="no match found"
-                      destroyed(message)
 root.mainloop()
