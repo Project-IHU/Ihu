@@ -82,6 +82,10 @@ def destroyed(message):
         prev.destroy()
     logo=Label(titleBar,text=message, font=logostyle,bg=ihugrey, fg="white")
     logo.grid(row=0,column=0,padx=0,pady=0)
+    back_button=Button(titleBar,
+                       text="Back",font=logostyle,padx=10,
+                       pady=0,fg="white",bg=buttonblue,command= exam_setup).grid(row=0,column=1,padx=300)
+
 #     home=Button(titleBar,text="Analyze video",font=logostyle,padx=0,pady=0,bg=buttonblue,fg="white",borderwidth=0,border=0)
 #     home.grid(row=0,column=8,padx=(357,0),ipady=0)
 
@@ -128,6 +132,7 @@ def back():
 #img=ImageTk.PhotoImage(Image.open("registered_student"))
 needed_data = {}
 all_details = {}
+global seat_number
 seat_number = []
 #img=ImageTk.PhotoImage(Image.open('registered_student_img/2015364011.png'))
 #imgl=Label(WelcomeFrame,image=img)
@@ -139,7 +144,9 @@ def decode_images(students):
     '''
     this function is used to change the students images to raw format and store in a folder created
     '''
-    back_button=Button(titleBar, text="Back",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= exam_setup).grid(row=0,column=0)
+    back_button=Button(titleBar,
+                       text="Back",font=logostyle,padx=10,
+                       pady=0,fg="white",bg=buttonblue,command= exam_setup).grid(row=0,column=0)
     ini_text='{} students are registered for this course'.format(len(students))
     ini_message=Label(WelcomeFrame,text=ini_text,font=papystyle,bg=ihugrey,fg=ihublue)
     ini_message.grid(row=1,column=1,pady=(195,0),padx=(350,0))
@@ -178,7 +185,7 @@ def decode_images(students):
                  Getting_message.grid(row=2,column=1,padx=(320,0))
                  root.update_idletasks()
                  time.sleep
-                 known_encoding = face_recognition.face_encodings(img, num_jitters=100, model="large")[0]
+                 known_encoding = face_recognition.face_encodings(img,model="large")[0]
                  known_encodings.append(known_encoding)
                  student_regno.append(reg_no)       
              else:
@@ -186,8 +193,9 @@ def decode_images(students):
 #                  noloc_message= Label(WelcomeFrame, text=no_loc, font=logostyle)
 #                  noloc_message.grid(row=3,column=1)
                  missed_face_locations.append(reg_no)
-             seat_number =  random.sample(range(1,count), count-1)
-       
+        seat_number =  random.sample(range(1,count+1), count)
+        print(seat_number)
+        print("This is count: {}".format(count))
         if missed_face_locations:
 #              def view_list():
 #                  face_frame=LabelFrame(WelcomeFrame,text="missed",width=200,height=200)
@@ -201,14 +209,17 @@ def decode_images(students):
                  missed=Label(WelcomeFrame,text=stu,font=papystyle, bg=ihugrey,fg=ihublue)
                  missed.grid(row=3,column=2)
                  
-        
-        Verify=Button(WelcomeFrame,text='Start verification',font=papystyle,bg=buttonblue,border=0,borderwidth=0, command=lambda:start_verification(known_encodings,student_regno,all_details))
-        Verify.grid(row=4,column=1,padx=(330,10), pady=(10,75))
+        if len(known_encodings) + len(missed_face_locations) == len(students):
+            done=Label(WelcomeFrame,text="System is ready for verification",font=papystyle, bg=ihugrey,fg=ihublue)
+            done.grid(row=2,column=1,padx=(320,0))
+            Verify=Button(WelcomeFrame,text='Start verification',font=papystyle,bg=buttonblue,border=0,borderwidth=0, command=lambda:start_verification(known_encodings,student_regno,all_details,seat_number))
+            Verify.grid(row=4,column=1,padx=(330,10), pady=(10,75))
         
         #FETCH DETAILS IS USED TO DO THE API CALL
 def fetch_details(coursecode):
     destroyer()
-    back_button=Button(titleBar, text="Back",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command= back).grid(row=0,column=0)
+    back_button=Button(titleBar, text="Back",font=logostyle,padx=10,
+                       pady=0,fg="white",bg=buttonblue,command= back).grid(row=0,column=0)
     message= "Remotely fetching student details,ensure network connection is strong..."
     loading=Label(WelcomeFrame,text=message, font=papystyle,bg=ihugrey,fg=ihublue)
     loading.grid(row=0,column=1,pady=(195,10),padx=(250,5))
@@ -242,40 +253,58 @@ def fetch_details(coursecode):
             get_ready.grid(row=1,column=1,pady=(0,5),padx=(100,0))
         elif reg_students and progress_bar['value'] ==100:
             decode_images(reg_students)
-def display_match(student,known_encodings, student_regno,students):
+def display_match(student,known_encodings, student_regno,students,seat_number):
     global New
-    message="Student with registration number {} has been verified!".format(student['reg_no'])
-    destroyed(message)
-    if seat_number:
-     seat=seat_number.pop
-     seat_tag=Label(WelcomeFrame,text= "Seat Number:",font=papystyle,bg=ihugrey,fg=ihublue)
-     seat_tag.grid(row=0,column=4)
-     seat_no=Label(WelcomeFrame, text=seat,font=papystyle,bg=ihugrey,fg=ihublue)
-     seat_no.grid(row=0,column=5)
-    New =ImageTk.PhotoImage(Image.open("registered_student_img/{}.png".format(student['reg_no'])))
-    pic=Label(WelcomeFrame,image=New)
-    pic.grid(row=0,column=0)
-    back_button=Button(WelcomeFrame, text="Next",font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,command=lambda: start_verification(known_encodings,student_regno,students)).grid(row=1,column=4)
-    f_tag=Label(WelcomeFrame,text="First Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
-    f_tag.grid(row=2,column=0,padx=(0,200))
-    fname=student['firstname']
-    firstname=Label(WelcomeFrame,text=fname,font=papystyle,bg=ihugrey,fg=ihublue)
-    firstname.grid(row=2,column=1,padx=0)
     
-    l_tag=Label(WelcomeFrame,text="Last Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
-    l_tag.grid(row=3,column=0,padx=(0,200))
-    lname=student['lastname']
-    lastname=Label(WelcomeFrame,text=lname,font=papystyle,bg=ihugrey,fg=ihublue)
-    lastname.grid(row=3,column=1,padx=0)
+    if student == 0:
+        message = "No Match Found"
+        destroyed(message)
+        back_button=Button(WelcomeFrame, text="Next",
+                       font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,
+                       command=lambda: start_verification(known_encodings,
+                                                          student_regno,students,seat_number))
+        back_button.grid(row=1, column=4)
+    else:
+        
+        message="Student with registration number {} has been verified!".format(student['reg_no'])
+        destroyed(message)
+        back_button=Button(WelcomeFrame, text="Next",
+                       font=logostyle,padx=10,pady=0,fg="white",bg=buttonblue,
+                       command=lambda: start_verification(known_encodings,
+                                                          student_regno,students,seat_number))
+        
+        
+        back_button.grid(row=1, column=4)
+        print(seat_number)
+        if seat_number:
+         seat=seat_number.pop()
+         seat_tag=Label(WelcomeFrame,text= "Seat Number:",font=papystyle,bg=ihugrey,fg=ihublue)
+         seat_tag.grid(row=0,column=4)
+         seat_no=Label(WelcomeFrame, text=seat,font=papystyle,bg=ihugrey,fg=ihublue)
+         seat_no.grid(row=0,column=5)
+        New =ImageTk.PhotoImage(Image.open("registered_student_img/{}.png".format(student['reg_no'])))
+        pic=Label(WelcomeFrame,image=New)
+        pic.grid(row=0,column=0)
+        f_tag=Label(WelcomeFrame,text="First Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
+        f_tag.grid(row=2,column=0,padx=(0,200))
+        fname=student['firstname']
+        firstname=Label(WelcomeFrame,text=fname,font=papystyle,bg=ihugrey,fg=ihublue)
+        firstname.grid(row=2,column=1,padx=0)
+        
+        l_tag=Label(WelcomeFrame,text="Last Name: ",font=papystyle,bg=ihugrey,fg=ihublue)
+        l_tag.grid(row=3,column=0,padx=(0,200))
+        lname=student['lastname']
+        lastname=Label(WelcomeFrame,text=lname,font=papystyle,bg=ihugrey,fg=ihublue)
+        lastname.grid(row=3,column=1,padx=0)
+        
+        reg_tag=Label(WelcomeFrame,text="Registration No: ",font=papystyle,bg=ihugrey,fg=ihublue)
+        reg_tag.grid(row=1,column=0,padx=(0,180))
+        rnum=student['reg_no']
+        regi_no=Label(WelcomeFrame,text=rnum,font=papystyle,bg=ihugrey,fg=ihublue)
+        regi_no.grid(row=1,column=1,padx=0)
     
-    reg_tag=Label(WelcomeFrame,text="Registration No: ",font=papystyle,bg=ihugrey,fg=ihublue)
-    reg_tag.grid(row=1,column=0,padx=(0,180))
-    rnum=student['reg_no']
-    regi_no=Label(WelcomeFrame,text=rnum,font=papystyle,bg=ihugrey,fg=ihublue)
-    regi_no.grid(row=1,column=1,padx=0)
     
-    
-def start_verification(known_encodings,student_regno,student):
+def start_verification(known_encodings,student_regno,student,seat_number):
      
   #initialize flag variable to y
      flag = 'y' 
@@ -369,10 +398,10 @@ def start_verification(known_encodings,student_regno,student):
                       #use the reg no to further process students info and display with necessary voice notification
                       
                       #DISPLAY STUDENT THAT HAS BEEN FOUND
-                      display_match(student[str(reg_no)],known_encodings,student_regno,student)  
+                      display_match(student[str(reg_no)],known_encodings,student_regno,student, seat_number)  
                   else:
-                      message="no match found"
-                      destroyed(message)
+                      display_match(0,known_encodings,student_regno,student,seat_number)  
+
 
     
 #WELCOME PAGE/FRAME
